@@ -4,6 +4,7 @@ import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload as UploadIcon } from "lucide-react";
+import { upload } from "@vercel/blob/client";
 import { TEAMS, SUPPORTED_AUDIO_TYPES, SUPPORTED_PDF_TYPE, MAX_AUDIO_SIZE_BYTES, MAX_PDF_SIZE_BYTES, ERROR_MESSAGES } from "@/lib/constants";
 import { ProcessingStep } from "@/types";
 import FileUploadZone from "@/components/FileUploadZone";
@@ -84,31 +85,45 @@ export default function UploadPage({ params }: UploadPageProps) {
     setIsProcessing(true);
 
     try {
-      // Step 1: Upload files
+      // Step 1: Upload files directly to Blob (client-side)
       updateStepStatus("upload", "in-progress");
-      const formData = new FormData();
-      formData.append("audio", audioFile);
-      formData.append("pdf", pdfFile);
-      formData.append("teamId", teamId.toString());
 
-      console.log("Uploading files:", {
+      console.log("Uploading files directly to Blob:", {
         audioName: audioFile.name,
         audioType: audioFile.type,
         audioSize: audioFile.size,
         pdfName: pdfFile.name,
+        pdfSize: pdfFile.size,
       });
 
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+      // Upload audio file directly to Vercel Blob
+      const audioTimestamp = Date.now();
+      const audioExtension = audioFile.name.split(".").pop();
+      const audioFilename = `team-${teamId}-audio-${audioTimestamp}.${audioExtension}`;
+
+      console.log("Uploading audio to Blob:", audioFilename);
+      const audioBlob = await upload(audioFilename, audioFile, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
       });
+      console.log("Audio uploaded to Blob:", audioBlob.url);
 
-      if (!uploadRes.ok) {
-        const errorData = await uploadRes.json();
-        throw new Error(errorData.error || "Upload failed");
-      }
+      // Upload PDF file directly to Vercel Blob
+      const pdfTimestamp = Date.now();
+      const pdfFilename = `team-${teamId}-pdf-${pdfTimestamp}.pdf`;
 
-      const { audioUrl, pdfUrl, audioContentType, audioFileName } = await uploadRes.json();
+      console.log("Uploading PDF to Blob:", pdfFilename);
+      const pdfBlob = await upload(pdfFilename, pdfFile, {
+        access: "public",
+        handleUploadUrl: "/api/blob/upload",
+      });
+      console.log("PDF uploaded to Blob:", pdfBlob.url);
+
+      const audioUrl = audioBlob.url;
+      const pdfUrl = pdfBlob.url;
+      const audioContentType = audioFile.type;
+      const audioFileName = audioFilename;
+
       console.log("Upload successful:", { audioUrl, pdfUrl, audioContentType, audioFileName });
       updateStepStatus("upload", "completed");
 
