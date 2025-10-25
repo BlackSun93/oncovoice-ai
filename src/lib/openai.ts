@@ -5,7 +5,7 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 const TRANSCRIPTION_MODEL = process.env.OPENAI_TRANSCRIPTION_MODEL ?? "whisper-1";
-const ANALYSIS_MODEL = process.env.OPENAI_ANALYSIS_MODEL ?? "gpt-4.1-mini";
+const ANALYSIS_MODEL = process.env.OPENAI_ANALYSIS_MODEL ?? "gpt-5";
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
