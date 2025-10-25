@@ -115,10 +115,16 @@ export async function transcribeAudio(
  * Analyze a transcript against an accompanying PDF by calling the OpenAI
  * Responses API and asking for structured JSON output.
  */
+type AnalysisStructuredOutput = {
+  summary: string;
+  conclusion: string;
+  criticism: string;
+};
+
 export async function analyzeWithGPT5(
   transcript: string,
   pdfPath: string
-): Promise<{ summary: string; conclusion: string; criticism: string }> {
+): Promise<AnalysisStructuredOutput> {
   let uploadedFileId: string | null = null;
 
   try {
@@ -135,7 +141,7 @@ export async function analyzeWithGPT5(
 
     console.log(`PDF uploaded successfully. File ID: ${uploadedFileId}`);
 
-    const response = await openai.responses.create({
+    const response = await openai.responses.parse({
       model: ANALYSIS_MODEL,
       input: [
         {
@@ -162,55 +168,55 @@ export async function analyzeWithGPT5(
           ],
         },
       ],
-      response_format: {
-        type: "json_schema",
-        name: "oncology_analysis",
-        description: "Structured analysis of the clinical discussion compared with the scientific PDF.",
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          required: ["summary", "conclusion", "criticism"],
-          properties: {
-            summary: {
-              type: "string",
-              description: "Two to three paragraph summary of the discussion highlights.",
-            },
-            conclusion: {
-              type: "string",
-              description: "Key takeaways, outcomes, or recommended next steps from the conversation.",
-            },
-            criticism: {
-              type: "string",
-              description:
-                "Critical comparison between the discussion and the scientific PDF, covering strengths, gaps, discrepancies, and references to specific evidence.",
+      text: {
+        format: {
+          type: "json_schema",
+          name: "oncology_analysis",
+          description: "Structured analysis of the clinical discussion compared with the scientific PDF.",
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["summary", "conclusion", "criticism"],
+            properties: {
+              summary: {
+                type: "string",
+                description: "Two to three paragraph summary of the discussion highlights.",
+              },
+              conclusion: {
+                type: "string",
+                description: "Key takeaways, outcomes, or recommended next steps from the conversation.",
+              },
+              criticism: {
+                type: "string",
+                description:
+                  "Critical comparison between the discussion and the scientific PDF, covering strengths, gaps, discrepancies, and references to specific evidence.",
+              },
             },
           },
+          strict: true,
         },
-        strict: true,
       },
     });
 
-    const output = response.output_text?.trim();
-    if (!output) {
-      throw new Error("OpenAI returned an empty analysis response");
-    }
+    const analysis = response.output_parsed as AnalysisStructuredOutput | null;
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(output);
-    } catch (parseError) {
-      console.error("Failed to parse structured analysis response:", parseError, { output });
-      throw new Error("Could not parse analysis response from OpenAI");
-    }
+    if (!analysis || !analysis.summary || !analysis.conclusion || !analysis.criticism) {
+      const fallback = response.output_text?.trim();
 
-    const { summary, conclusion, criticism } = parsed as Record<string, string | undefined>;
+      console.error("Structured analysis response missing fields", {
+        hasParsed: Boolean(analysis),
+        fallback,
+      });
 
-    if (!summary || !conclusion || !criticism) {
+      if (fallback) {
+        throw new Error("OpenAI returned unstructured analysis output. Please review fallback text in logs.");
+      }
+
       throw new Error("Analysis response was missing required fields");
     }
 
     console.log("Analysis completed successfully");
-    return { summary, conclusion, criticism };
+    return analysis;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Analysis error details:", {
