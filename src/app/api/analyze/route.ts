@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeWithGPT4 } from "@/lib/openai";
-import { extractPdfText } from "@/lib/pdf-processor";
+import { analyzeWithGPT5 } from "@/lib/openai";
 import { saveResult } from "@/lib/storage";
 import { TEAMS } from "@/lib/constants";
 
@@ -17,22 +16,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract text from PDF
-    console.log("Step 1: Extracting text from PDF...");
-    const pdfText = await extractPdfText(pdfUrl);
-    console.log(`PDF text extracted: ${pdfText.length} characters`);
-
-    // Analyze with GPT-4
-    console.log("Step 2: Analyzing with GPT-4...");
-    const analysis = await analyzeWithGPT4(transcript, pdfText);
-    console.log("GPT-4 analysis completed");
+    // Analyze with GPT-5 (now processes PDF directly - no text extraction needed!)
+    console.log("Step 1: Analyzing with GPT-5 (including native PDF processing)...");
+    const analysis = await analyzeWithGPT5(transcript, pdfUrl);
+    console.log("GPT-5 analysis completed (PDF + transcript analyzed)");
 
     // Find team name
     const team = TEAMS.find((t) => t.id === parseInt(teamId));
     const teamName = team?.name || `Team ${teamId}`;
 
     // Save result to storage
-    console.log("Step 3: Saving result to storage...");
+    console.log("Step 2: Saving result to storage...");
     const result = {
       teamId: parseInt(teamId),
       teamName,
