@@ -1,65 +1,161 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { TEAMS } from "@/lib/constants";
+import { Mic, LineChart } from "lucide-react";
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="relative flex items-center justify-center px-4 py-8 min-h-[calc(100vh-12rem)] overflow-hidden">
+      {/* Enhanced Animated Background */}
+      <div className="absolute inset-0 -z-10">
+        {/* Gradient Orbs with improved positioning */}
+        <div className="absolute top-[20%] left-[15%] w-[500px] h-[500px] bg-cyan-500/20 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-[15%] right-[15%] w-[500px] h-[500px] bg-teal-500/20 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-emerald-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[10%] right-[25%] w-[300px] h-[300px] bg-violet-500/15 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }} />
+
+        {/* Refined Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-15" />
+
+        {/* Radial gradient overlay for depth */}
+        <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-900/20 to-slate-900/40" />
+      </div>
+
+      <div className="max-w-7xl w-full relative z-10">
+        {/* Enhanced Hero Section */}
+        <div className="text-center mb-12">
+          {/* Icon with glow effect */}
+          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-2xl mb-6 shadow-lg shadow-cyan-500/10 border border-cyan-500/20">
+            <Mic className="w-8 h-8 text-cyan-400 animate-pulse" />
+          </div>
+
+          {/* Title with enhanced gradient */}
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300 bg-clip-text text-transparent leading-tight">
+            Select Your Team
+          </h2>
+
+          {/* Subtitle with better contrast */}
+          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-3">
+            Upload your clinical discussion recording for AI-powered analysis
+          </p>
+
+          {/* Decorative underline */}
+          <div className="flex justify-center gap-2 mb-8">
+            <div className="h-1 w-20 bg-gradient-to-r from-transparent via-cyan-500 to-transparent rounded-full" />
+            <div className="h-1 w-20 bg-gradient-to-r from-transparent via-teal-500 to-transparent rounded-full" />
+          </div>
+        </div>
+
+        {/* Enhanced Team Selection Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 mb-12 px-2">
+          {TEAMS.map((team) => (
+            <Link
+              key={team.id}
+              href={`/upload/${team.id}`}
+              className="group relative"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <div className={`
+                relative overflow-hidden rounded-2xl p-8
+                bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-md
+                border-2 ${team.borderColor} border-opacity-30
+                hover:border-opacity-100
+                transform hover:scale-110 hover:-translate-y-2
+                transition-all duration-500 ease-out
+                shadow-xl hover:shadow-2xl
+              `}
+              style={{
+                boxShadow: `0 10px 40px -10px ${team.color}20, 0 0 0 1px ${team.color}10`
+              }}
+              >
+                {/* Enhanced gradient overlay with glow */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500"
+                  style={{ background: `radial-gradient(circle at center, ${team.color}40 0%, transparent 70%)` }}
+                />
+
+                {/* Animated border glow */}
+                <div
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm"
+                  style={{ background: `linear-gradient(135deg, ${team.color}30 0%, transparent 100%)` }}
+                />
+
+                {/* Content */}
+                <div className="relative z-10 flex flex-col items-center">
+                  {/* Enhanced Team Number Circle with pulse */}
+                  <div
+                    className={`
+                      w-20 h-20 rounded-full flex items-center justify-center mb-4
+                      ${team.bgColor} bg-opacity-20
+                      border-3 ${team.borderColor}
+                      group-hover:scale-125 group-hover:rotate-12 transition-all duration-500
+                      shadow-lg
+                    `}
+                    style={{
+                      boxShadow: `0 0 20px ${team.color}40, inset 0 0 20px ${team.color}20`
+                    }}
+                  >
+                    <span className="text-4xl font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: team.color }}>
+                      {team.id}
+                    </span>
+                  </div>
+
+                  {/* Team Name with better typography */}
+                  <h3 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors">
+                    {team.name}
+                  </h3>
+
+                  {/* Enhanced arrow indicator */}
+                  <div className="mt-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                    <svg
+                      className="w-5 h-5 text-slate-400 group-hover:text-white animate-bounce"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Enhanced Results Button with separator */}
+        <div className="flex flex-col items-center gap-6">
+          {/* Decorative separator */}
+          <div className="flex items-center gap-4 w-full max-w-md">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700 to-slate-700" />
+            <span className="text-xs text-slate-500 font-medium uppercase tracking-wider">Or</span>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent via-slate-700 to-slate-700" />
+          </div>
+
+          <Link
+            href="/results"
+            className="group relative inline-flex items-center gap-3 px-10 py-4 bg-gradient-to-r from-cyan-600 via-teal-600 to-emerald-600 hover:from-cyan-500 hover:via-teal-500 hover:to-emerald-500 rounded-2xl font-bold text-lg text-white shadow-2xl hover:shadow-cyan-500/30 transform hover:scale-105 transition-all duration-300 overflow-hidden"
+          >
+            {/* Animated background shimmer */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+
+            <LineChart className="w-6 h-6 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+            <span className="relative z-10">View Results Dashboard</span>
+            <svg
+              className="w-6 h-6 relative z-10 transform group-hover:translate-x-2 transition-transform duration-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              Learning
-            </a>{" "}
-            center.
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
+
+          {/* Helper text */}
+          <p className="text-sm text-slate-500 text-center max-w-md">
+            View all teams&apos; analysis results in real-time
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }
