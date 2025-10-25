@@ -34,7 +34,6 @@ export async function POST(request: Request): Promise<NextResponse> {
         console.log("Upload completed:", {
           url: blob.url,
           pathname: blob.pathname,
-          size: blob.size,
           uploadedAt: blob.uploadedAt,
         });
       },
