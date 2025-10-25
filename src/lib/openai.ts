@@ -30,6 +30,11 @@ function resolveLocalFilePath(reference: string): string {
 
   target = target.replace(/[?#].*$/, "");
 
+  // Treat `/uploads/...` and `/public/...` as content inside the Next.js public directory.
+  if (target.startsWith("/uploads") || target.startsWith("/public")) {
+    target = target.replace(/^\/+/, "");
+  }
+
   if (path.isAbsolute(target)) {
     return target;
   }
@@ -163,7 +168,6 @@ export async function analyzeWithGPT5(
             {
               type: "input_file",
               file_id: uploadedFileId,
-              filename: path.basename(resolvedPdfPath),
             },
           ],
         },
