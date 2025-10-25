@@ -1,7 +1,4 @@
 import OpenAI, { toFile } from "openai";
-import { createReadStream } from "fs";
-import { promises as fs } from "fs";
-import path from "path";
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("OPENAI_API_KEY environment variable is not set");
@@ -17,36 +14,21 @@ export const openai = new OpenAI({
 const AUDIO_BUFFER_FALLBACK_EXTENSION = "mp3";
 
 /**
- * Resolve a local filesystem path from an upload reference which may be an absolute
- * path, a relative path, or a URL such as `/uploads/foo.m4a` or
- * `http://localhost:3000/uploads/foo.m4a`.
+ * Fetch a file from a URL and return it as a Buffer
  */
-function resolveLocalFilePath(reference: string): string {
-  let target = reference.trim();
+async function fetchFileFromUrl(url: string): Promise<Buffer> {
+  console.log(`Fetching file from URL: ${url}`);
+  const response = await fetch(url);
 
-  if (target.startsWith("http://") || target.startsWith("https://")) {
-    target = new URL(target).pathname;
+  if (!response.ok) {
+    throw new Error(`Failed to fetch file from ${url}: ${response.status} ${response.statusText}`);
   }
 
-  target = target.replace(/[?#].*$/, "");
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  console.log(`Fetched ${buffer.length} bytes from ${url}`);
 
-  // Treat `/uploads/...` and `/public/...` as content inside the Next.js public directory.
-  if (target.startsWith("/uploads") || target.startsWith("/public")) {
-    target = target.replace(/^\/+/, "");
-  }
-
-  if (path.isAbsolute(target)) {
-    return target;
-  }
-
-  // Remove any leading slash so joins treat it as relative.
-  const withoutLeadingSlash = target.replace(/^\/+/, "");
-
-  if (withoutLeadingSlash.startsWith("public/")) {
-    return path.resolve(process.cwd(), withoutLeadingSlash);
-  }
-
-  return path.resolve(process.cwd(), "public", withoutLeadingSlash);
+  return buffer;
 }
 
 /**
@@ -62,26 +44,47 @@ function inferExtension(contentType?: string, fallback = AUDIO_BUFFER_FALLBACK_E
 }
 
 /**
+ * Extract filename from a URL
+ */
+function getFilenameFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname;
+    const parts = pathname.split('/');
+    return parts[parts.length - 1] || 'file';
+  } catch {
+    return 'file';
+  }
+}
+
+/**
  * Transcribe an audio file using the OpenAI Whisper / transcription models.
- * Accepts either a filesystem reference (string) or a Buffer.
+ * Accepts either a URL (string) or a Buffer.
  */
 export async function transcribeAudio(
-  audioPathOrBuffer: string | Buffer,
+  audioUrlOrBuffer: string | Buffer,
   contentType?: string,
   fileName?: string
 ): Promise<string> {
   try {
-    const uploadable =
-      typeof audioPathOrBuffer === "string"
-        ? (() => {
-            const resolvedPath = resolveLocalFilePath(audioPathOrBuffer);
-            console.log(`Reading audio file from: ${resolvedPath}`);
-            return createReadStream(resolvedPath);
-          })()
-        : await toFile(
-            audioPathOrBuffer,
-            fileName ?? `audio.${inferExtension(contentType, AUDIO_BUFFER_FALLBACK_EXTENSION)}`
-          );
+    let buffer: Buffer;
+    let finalFileName: string;
+
+    // If it's a string, treat it as a URL and fetch the file
+    if (typeof audioUrlOrBuffer === "string") {
+      console.log(`Fetching audio file from URL: ${audioUrlOrBuffer}`);
+      buffer = await fetchFileFromUrl(audioUrlOrBuffer);
+      finalFileName = fileName || getFilenameFromUrl(audioUrlOrBuffer);
+    } else {
+      // It's already a buffer
+      buffer = audioUrlOrBuffer;
+      finalFileName = fileName ?? `audio.${inferExtension(contentType, AUDIO_BUFFER_FALLBACK_EXTENSION)}`;
+    }
+
+    console.log(`Preparing audio file for transcription: ${finalFileName} (${buffer.length} bytes)`);
+
+    // Convert buffer to File object for OpenAI
+    const uploadable = await toFile(buffer, finalFileName);
 
     console.log(`Calling OpenAI transcription model (${TRANSCRIPTION_MODEL})...`);
     const transcription = await openai.audio.transcriptions.create({
@@ -97,13 +100,13 @@ export async function transcribeAudio(
     console.error("Transcription error details:", {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
-      sourceType: typeof audioPathOrBuffer,
+      sourceType: typeof audioUrlOrBuffer,
       contentType,
       fileName,
     });
 
-    if (error instanceof Error && /ENOENT|no such file/i.test(error.message)) {
-      throw new Error(`Audio file not found: ${error.message}`);
+    if (error instanceof Error && /fetch|network/i.test(error.message)) {
+      throw new Error(`Failed to fetch audio file: ${error.message}`);
     }
     if (error instanceof Error && /API/i.test(error.message)) {
       throw new Error(`OpenAI API error: ${error.message}`);
@@ -128,18 +131,32 @@ type AnalysisStructuredOutput = {
 
 export async function analyzeWithGPT5(
   transcript: string,
-  pdfPath: string
+  pdfUrlOrBuffer: string | Buffer
 ): Promise<AnalysisStructuredOutput> {
   let uploadedFileId: string | null = null;
 
   try {
-    const resolvedPdfPath = resolveLocalFilePath(pdfPath);
-    const pdfStats = await fs.stat(resolvedPdfPath);
-    console.log(`Preparing PDF for analysis: ${resolvedPdfPath} (${pdfStats.size} bytes)`);
+    let pdfBuffer: Buffer;
+    let pdfFileName: string;
 
+    // If it's a string, treat it as a URL and fetch the file
+    if (typeof pdfUrlOrBuffer === "string") {
+      console.log(`Fetching PDF from URL: ${pdfUrlOrBuffer}`);
+      pdfBuffer = await fetchFileFromUrl(pdfUrlOrBuffer);
+      pdfFileName = getFilenameFromUrl(pdfUrlOrBuffer);
+    } else {
+      // It's already a buffer
+      pdfBuffer = pdfUrlOrBuffer;
+      pdfFileName = "document.pdf";
+    }
+
+    console.log(`Preparing PDF for analysis: ${pdfFileName} (${pdfBuffer.length} bytes)`);
+
+    // Upload PDF to OpenAI for assistant processing
+    const pdfFile = await toFile(pdfBuffer, pdfFileName);
     uploadedFileId = (
       await openai.files.create({
-        file: createReadStream(resolvedPdfPath),
+        file: pdfFile,
         purpose: "assistants",
       })
     ).id;
@@ -226,11 +243,11 @@ export async function analyzeWithGPT5(
     console.error("Analysis error details:", {
       error: errorMessage,
       stack: error instanceof Error ? error.stack : undefined,
-      pdfPath,
+      pdfSource: typeof pdfUrlOrBuffer === "string" ? pdfUrlOrBuffer : "Buffer",
     });
 
-    if (error instanceof Error && /ENOENT|no such file/i.test(error.message)) {
-      throw new Error(`PDF file not found: ${error.message}`);
+    if (error instanceof Error && /fetch|network/i.test(error.message)) {
+      throw new Error(`Failed to fetch PDF file: ${error.message}`);
     }
     if (error instanceof Error && /API/i.test(error.message)) {
       throw new Error(`OpenAI API error: ${error.message}`);
