@@ -56,7 +56,7 @@ export async function getAllResults(): Promise<Record<string, TeamResult | null>
   if (process.env.KV_REST_API_URL) {
     try {
       const { kv } = await import("@vercel/kv");
-      for (let i = 1; i <= 5; i++) {
+      for (let i = 1; i <= 15; i++) {
         const key = `team-${i}`;
         const result = await kv.get<TeamResult>(key);
         results[key] = result;
@@ -68,7 +68,7 @@ export async function getAllResults(): Promise<Record<string, TeamResult | null>
   }
 
   // Fallback to in-memory storage (development)
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 15; i++) {
     const key = `team-${i}`;
     results[key] = inMemoryStorage[key] || null;
   }
