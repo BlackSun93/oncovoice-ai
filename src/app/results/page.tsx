@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, LineChart, Loader2 } from "lucide-react";
-import { TEAMS, DASHBOARD_REFRESH_INTERVAL, getTeamsBySession } from "@/lib/constants";
+import { TEAMS, DASHBOARD_REFRESH_INTERVAL, getTeamsBySession, getSessionForTeam } from "@/lib/constants";
 import { AllResults, TeamResult } from "@/types";
 import TeamResultCard from "@/components/TeamResultCard";
 import FullResultsModal from "@/components/FullResultsModal";
@@ -18,12 +18,17 @@ function ResultsContent() {
   const [selectedAudioResult, setSelectedAudioResult] = useState<TeamResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [selectedSession, setSelectedSession] = useState<number>(1);
-  const [showProcessingNotice, setShowProcessingNotice] = useState(false);
 
   // Check if we're waiting for processing to complete
   const isProcessing = searchParams.get('processing') === 'true';
   const processingTeamId = searchParams.get('team');
+
+  // Determine initial session based on the team ID from query params (if provided)
+  const initialSession = processingTeamId
+    ? getSessionForTeam(parseInt(processingTeamId))
+    : 1;
+  const [selectedSession, setSelectedSession] = useState<number>(initialSession);
+  const [showProcessingNotice, setShowProcessingNotice] = useState(false);
 
   const fetchResults = async () => {
     try {

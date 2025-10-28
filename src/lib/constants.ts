@@ -38,6 +38,12 @@ export const getTeamsBySession = (sessionId: number) => {
   return TEAMS.filter(team => team.sessionId === sessionId);
 };
 
+// Helper function to get session ID for a specific team
+export const getSessionForTeam = (teamId: number): number => {
+  const team = TEAMS.find(t => t.id === teamId);
+  return team?.sessionId || 1; // Default to session 1 if team not found
+};
+
 // Cortex Brand Colors (from logo)
 export const CORTEX_COLORS = {
   blue: "#2E8BC0",

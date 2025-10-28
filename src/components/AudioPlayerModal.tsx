@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TeamResult } from "@/types";
 import { TEAMS } from "@/lib/constants";
 import { X } from "lucide-react";
@@ -14,7 +14,38 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // State to track which text segment to display (0 = none, 1 = first third, 2 = two thirds, 3 = all)
+  const [displayedSegments, setDisplayedSegments] = useState(0);
+
   const team = result ? TEAMS.find((t) => t.id === result.teamId) : null;
+
+  // Split criticism into 3 equal parts based on word count
+  const getCriticismSegments = () => {
+    if (!result?.criticism) return { part1: "", part2: "", part3: "" };
+
+    const words = result.criticism.split(" ");
+    const wordsPerSegment = Math.ceil(words.length / 3);
+
+    const part1Words = words.slice(0, wordsPerSegment);
+    const part2Words = words.slice(wordsPerSegment, wordsPerSegment * 2);
+    const part3Words = words.slice(wordsPerSegment * 2);
+
+    return {
+      part1: part1Words.join(" "),
+      part2: part2Words.join(" "),
+      part3: part3Words.join(" "),
+    };
+  };
+
+  const segments = getCriticismSegments();
+
+  // Get displayed text based on current segment (replace mode - only one segment at a time)
+  const getDisplayedText = () => {
+    if (displayedSegments === 0) return "";
+    if (displayedSegments === 1) return segments.part1;
+    if (displayedSegments === 2) return segments.part2;
+    return segments.part3;
+  };
 
   // Auto-play audio when modal opens
   useEffect(() => {
@@ -22,6 +53,37 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
       audioRef.current.play().catch(console.error);
     }
   }, [result?.criticismAudioUrl]);
+
+  // Progressive text display: Show segments over 50 seconds
+  useEffect(() => {
+    if (!result?.criticism) return;
+
+    // Reset segments when modal opens
+    setDisplayedSegments(0);
+
+    // Show first segment immediately
+    const timer1 = setTimeout(() => setDisplayedSegments(1), 0);
+
+    // Show second segment at 16.67 seconds
+    const timer2 = setTimeout(() => setDisplayedSegments(2), 16670);
+
+    // Show third segment at 33.33 seconds
+    const timer3 = setTimeout(() => setDisplayedSegments(3), 33330);
+
+    // Cleanup timers on unmount
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [result?.criticism]);
+
+  // Stop video when audio finishes
+  const handleAudioEnded = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+  };
 
   if (!result || !result.criticismAudioUrl || !team) return null;
 
@@ -42,9 +104,8 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
         <div className="relative w-full aspect-video bg-black">
           <video
             ref={videoRef}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             autoPlay
-            loop
             muted
             playsInline
           >
@@ -71,7 +132,12 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
         {/* Content Below Video */}
         <div className="relative overflow-y-auto max-h-[40vh]">
           {/* Hidden Audio Element - Auto-plays without controls */}
-          <audio ref={audioRef} src={result.criticismAudioUrl} preload="auto" />
+          <audio
+            ref={audioRef}
+            src={result.criticismAudioUrl}
+            preload="auto"
+            onEnded={handleAudioEnded}
+          />
 
           {/* Criticism Text - Subtitles Style */}
           <div
@@ -83,7 +149,7 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
               Critical Analysis
             </h4>
             <p className="text-base text-gray-300 leading-relaxed">
-              {result.criticism}
+              {getDisplayedText()}
             </p>
           </div>
         </div>
