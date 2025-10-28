@@ -1,20 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, RefreshCw, LineChart } from "lucide-react";
+import { ArrowLeft, RefreshCw, LineChart, Loader2 } from "lucide-react";
 import { TEAMS, DASHBOARD_REFRESH_INTERVAL, getTeamsBySession } from "@/lib/constants";
 import { AllResults, TeamResult } from "@/types";
 import TeamResultCard from "@/components/TeamResultCard";
 import FullResultsModal from "@/components/FullResultsModal";
+import AudioPlayerModal from "@/components/AudioPlayerModal";
 import SessionSwitcher from "@/components/SessionSwitcher";
 
-export default function ResultsPage() {
+function ResultsContent() {
+  const searchParams = useSearchParams();
   const [results, setResults] = useState<AllResults>({});
   const [selectedResult, setSelectedResult] = useState<TeamResult | null>(null);
+  const [selectedAudioResult, setSelectedAudioResult] = useState<TeamResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [selectedSession, setSelectedSession] = useState<number>(1);
+  const [showProcessingNotice, setShowProcessingNotice] = useState(false);
+
+  // Check if we're waiting for processing to complete
+  const isProcessing = searchParams.get('processing') === 'true';
+  const processingTeamId = searchParams.get('team');
 
   const fetchResults = async () => {
     try {
@@ -23,6 +32,17 @@ export default function ResultsPage() {
         const data = await res.json();
         setResults(data.results || {});
         setLastUpdated(new Date());
+
+        // Check if processing is complete
+        if (isProcessing && processingTeamId) {
+          const teamKey = `team-${processingTeamId}`;
+          const teamResult = data.results?.[teamKey];
+
+          // If the team result is now completed, hide the processing notice
+          if (teamResult && teamResult.status === 'completed') {
+            setShowProcessingNotice(false);
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to fetch results:", error);
@@ -32,13 +52,19 @@ export default function ResultsPage() {
   };
 
   useEffect(() => {
+    // Show processing notice if redirected from upload
+    if (isProcessing) {
+      setShowProcessingNotice(true);
+    }
+
     fetchResults();
 
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchResults, DASHBOARD_REFRESH_INTERVAL);
+    // Use faster refresh interval when processing (5 seconds vs 30 seconds)
+    const refreshInterval = isProcessing ? 5000 : DASHBOARD_REFRESH_INTERVAL;
+    const interval = setInterval(fetchResults, refreshInterval);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isProcessing, processingTeamId]);
 
   const handleManualRefresh = () => {
     setIsLoading(true);
@@ -93,6 +119,21 @@ export default function ResultsPage() {
             </div>
           </div>
 
+          {/* Processing Notice */}
+          {showProcessingNotice && (
+            <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center gap-3 animate-pulse">
+              <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
+              <div>
+                <p className="text-amber-300 font-medium">
+                  Analysis in progress...
+                </p>
+                <p className="text-amber-300/70 text-sm">
+                  Results will appear automatically (refreshing every 5 seconds). This may take 2-5 minutes.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Results Grid */}
           {isLoading && Object.keys(results).length === 0 ? (
             <div className="text-center py-20">
@@ -110,6 +151,7 @@ export default function ResultsPage() {
                     key={team.id}
                     result={result || null}
                     onViewFull={() => result && setSelectedResult(result)}
+                    onPlayCriticism={() => result && setSelectedAudioResult(result)}
                   />
                 );
               })}
@@ -132,6 +174,28 @@ export default function ResultsPage() {
           onClose={() => setSelectedResult(null)}
         />
       )}
+
+      {/* Audio Player Modal */}
+      {selectedAudioResult && (
+        <AudioPlayerModal
+          result={selectedAudioResult}
+          onClose={() => setSelectedAudioResult(null)}
+        />
+      )}
     </>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="inline-block p-4 bg-slate-800 rounded-full mb-4">
+          <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin" />
+        </div>
+      </div>
+    }>
+      <ResultsContent />
+    </Suspense>
   );
 }

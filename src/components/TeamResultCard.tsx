@@ -2,14 +2,15 @@
 
 import { TeamResult } from "@/types";
 import { TEAMS, MAX_PREVIEW_LENGTH } from "@/lib/constants";
-import { FileText, Target, Lightbulb, Loader2, AlertCircle } from "lucide-react";
+import { FileText, Target, Lightbulb, Loader2, AlertCircle, Volume2 } from "lucide-react";
 
 interface TeamResultCardProps {
   result: TeamResult | null;
   onViewFull?: () => void;
+  onPlayCriticism?: () => void;
 }
 
-export default function TeamResultCard({ result, onViewFull }: TeamResultCardProps) {
+export default function TeamResultCard({ result, onViewFull, onPlayCriticism }: TeamResultCardProps) {
   const team = TEAMS.find((t) => t.id === result?.teamId);
 
   if (!team) return null;
@@ -37,7 +38,7 @@ export default function TeamResultCard({ result, onViewFull }: TeamResultCardPro
   }
 
   // Processing state
-  if (["uploading", "transcribing", "extracting_pdf", "analyzing"].includes(result.status)) {
+  if (["uploading", "transcribing", "extracting_pdf", "analyzing", "processing"].includes(result.status)) {
     return (
       <div className={`rounded-xl border-2 ${team.borderColor} border-opacity-50 bg-slate-800/50 p-6`}>
         <div className="flex items-center gap-3 mb-4">
@@ -59,6 +60,7 @@ export default function TeamResultCard({ result, onViewFull }: TeamResultCardPro
             {result.status === "transcribing" && "Transcribing audio"}
             {result.status === "extracting_pdf" && "Extracting PDF"}
             {result.status === "analyzing" && "Analyzing content"}
+            {result.status === "processing" && "Analyzing with AI (2-5 minutes)"}
           </p>
         </div>
       </div>
@@ -66,7 +68,7 @@ export default function TeamResultCard({ result, onViewFull }: TeamResultCardPro
   }
 
   // Error state
-  if (result.status === "error") {
+  if (result.status === "error" || result.status === "failed") {
     return (
       <div className={`rounded-xl border-2 border-red-500/50 bg-red-500/10 p-6`}>
         <div className="flex items-center gap-3 mb-4">
@@ -148,16 +150,34 @@ export default function TeamResultCard({ result, onViewFull }: TeamResultCardPro
         </div>
       </div>
 
-      {/* View Full Button */}
-      {onViewFull && (
-        <button
-          onClick={onViewFull}
-          className={`mt-6 w-full py-2 px-4 rounded-lg border-2 ${team.borderColor} ${team.hoverColor} bg-opacity-10 font-medium transition-all duration-300`}
-          style={{ color: team.color }}
-        >
-          View Full Analysis
-        </button>
-      )}
+      {/* Action Buttons */}
+      <div className="mt-6 grid grid-cols-1 gap-3">
+        {/* Dr Amr Criticism Button - Only show if audio is available */}
+        {onPlayCriticism && result.criticismAudioUrl && (
+          <button
+            onClick={onPlayCriticism}
+            className={`py-3 px-4 rounded-lg border-2 ${team.borderColor} font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg`}
+            style={{
+              backgroundColor: team.color,
+              color: "white",
+            }}
+          >
+            <Volume2 className="w-5 h-5" />
+            Dr Amr Criticism
+          </button>
+        )}
+
+        {/* View Full Analysis Button */}
+        {onViewFull && (
+          <button
+            onClick={onViewFull}
+            className={`py-2 px-4 rounded-lg border-2 ${team.borderColor} ${team.hoverColor} bg-opacity-10 font-medium transition-all duration-300`}
+            style={{ color: team.color }}
+          >
+            View Full Analysis
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -87,23 +87,23 @@ export const API_ROUTES = {
 export const DASHBOARD_REFRESH_INTERVAL = 30000; // 30 seconds
 export const MAX_PREVIEW_LENGTH = 200; // characters for preview cards
 
-// PDF Mapping - Maps team ID to PDF filename
-export const TEAM_PDF_MAPPING: Record<number, string> = {
-  1: "1-ILD and cancer therapy combined.pdf",
-  2: "2-Managing a patient with very early HER2+ disease combined.pdf",
-  3: "3-Radiotherapy after neoadjuvant therapy in 2025 combined.pdf",
-  4: "4-What is peculiar about brain metastasis combined.pdf",
-  5: "5-ADCs in HER2-positive breast cancer safety and efficacy combined.pdf",
-  6: "6-Dose dense chemotherapy with G-CSF support for early breast cancer combined.pdf",
-  7: "7-Management of isolated local recurrence combined.pdf",
-  8: "8-Managing AEs of targeted and endocrine therapy combinations combined.pdf",
-  9: "9-Molecular testing in Advanced ER+ breast cancer combined.pdf",
-  10: "10-When to position ADCs in metastatic ER+ disease combined.pdf",
-  11: "11-placeholder.pdf",
-  12: "12-placeholder.pdf",
-  13: "13-placeholder.pdf",
-  14: "14-placeholder.pdf",
-  15: "15-placeholder.pdf",
+// PDF Mapping - Maps team ID to Vercel Blob URL
+export const TEAM_PDF_URLS: Record<number, string> = {
+  1: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/1-ILD%20and%20cancer%20therapy%20combined.pdf",
+  2: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/2-Managing%20a%20patient%20with%20very%20early%20HER2%2B%20disease%20combined.pdf",
+  3: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/3-Radiotherapy%20after%20neoadjuvant%20therapy%20in%202025%20combined.pdf",
+  4: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/4-What%20is%20peculiar%20about%20brain%20metastasis%20combined.pdf",
+  5: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/5-ADCs%20in%20HER2-positive%20breast%20cancer%20safety%20and%20efficacy%20combined.pdf",
+  6: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/6-Dose%20dense%20chemotherapy%20with%20G-CSF%20support%20for%20early%20breast%20cancer%20combined.pdf",
+  7: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/7-Management%20of%20isolated%20local%20recurrence%20combined.pdf",
+  8: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/8-Managing%20AEs%20of%20targeted%20and%20endocrine%20therapy%20combinations%20combined.pdf",
+  9: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/9-Molecular%20testing%20in%20Advanced%20ER%2B%20breast%20cancer%20combined.pdf",
+  10: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/10-When%20to%20position%20ADCs%20in%20metastatic%20ER%2B%20disease%20combined.pdf",
+  11: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/11.pdf",
+  12: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/12.pdf",
+  13: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/13.pdf",
+  14: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/14.pdf",
+  15: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/15.pdf",
 };
 
 // Error Messages

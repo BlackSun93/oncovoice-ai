@@ -24,7 +24,9 @@ export type ProcessingStatus =
   | "transcribing"
   | "extracting_pdf"
   | "analyzing"
+  | "processing"
   | "completed"
+  | "failed"
   | "error";
 
 // Result types
@@ -37,6 +39,7 @@ export interface TeamResult {
   summary: string;
   conclusion: string;
   criticism: string;
+  criticismAudioUrl?: string; // TTS audio URL for criticism section
   createdAt: string;
   status: ProcessingStatus;
   error?: string;

@@ -45,6 +45,18 @@ export default function RootLayout({
                   <p className="text-xs text-slate-400">{APP_TAGLINE}</p>
                 </div>
               </div>
+
+              {/* CJC Logo on the right */}
+              <div className="flex items-center">
+                <Image
+                  src="/images/cjc.png"
+                  alt="CJC Logo"
+                  width={120}
+                  height={60}
+                  className="h-12 w-auto"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </header>

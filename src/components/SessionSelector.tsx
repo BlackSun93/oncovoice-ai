@@ -54,11 +54,6 @@ export default function SessionSelector({ onSelectSession }: SessionSelectorProp
                   {session.name}
                 </h3>
 
-                {/* Teams Info */}
-                <p className="text-sm text-slate-400 mb-4">
-                  Teams {session.teams[0]}-{session.teams[session.teams.length - 1]}
-                </p>
-
                 {/* Arrow Indicator */}
                 <div className="flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                   <ChevronRight className="w-5 h-5 text-cyan-400" />

@@ -166,12 +166,15 @@ export default function UploadPage({ params }: UploadPageProps) {
       }
 
       const analysisResult = await analyzeRes.json();
-      console.log("Analysis completed successfully:", analysisResult);
+      console.log("Analysis response received:", analysisResult);
+
+      // Analysis has started successfully (processing in background)
       updateStepStatus("analyze", "completed");
 
-      // Success! Redirect to results
+      // Success! Redirect to results dashboard with processing flag
+      // The analysis will continue in the background
       setTimeout(() => {
-        router.push("/results");
+        router.push(`/results?processing=true&team=${teamId}`);
       }, 1000);
     } catch (error) {
       console.error("Processing error:", error);

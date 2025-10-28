@@ -42,7 +42,7 @@ export default function HomePage() {
         <SessionSelector onSelectSession={handleSelectSession} />
       )}
 
-      <div className="relative flex items-center justify-center px-4 py-8 min-h-[calc(100vh-12rem)] overflow-hidden">
+      <div className="relative flex items-center justify-center px-4 py-4 min-h-[calc(100vh-12rem)] overflow-hidden">
       {/* Enhanced Animated Background */}
       <div className="absolute inset-0 -z-10">
         {/* Gradient Orbs with improved positioning */}
@@ -60,12 +60,7 @@ export default function HomePage() {
 
       <div className="max-w-7xl w-full relative z-10">
         {/* Enhanced Hero Section */}
-        <div className="text-center mb-12">
-          {/* Icon with glow effect */}
-          <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-cyan-500/20 to-teal-500/20 rounded-2xl mb-6 shadow-lg shadow-cyan-500/10 border border-cyan-500/20">
-            <Mic className="w-8 h-8 text-cyan-400 animate-pulse" />
-          </div>
-
+        <div className="text-center mb-8">
           {/* Session Badge */}
           {currentSession && (
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/60 border border-cyan-500/30 rounded-full mb-4">
@@ -82,12 +77,12 @@ export default function HomePage() {
           )}
 
           {/* Title with enhanced gradient */}
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300 bg-clip-text text-transparent leading-tight">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300 bg-clip-text text-transparent leading-tight">
             Select Your Team
           </h2>
 
           {/* Subtitle with better contrast */}
-          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-3">
+          <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-3">
             Upload your clinical discussion recording for AI-powered analysis
           </p>
 
@@ -99,7 +94,7 @@ export default function HomePage() {
         </div>
 
         {/* Enhanced Team Selection Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12 px-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 px-2">
           {displayTeams.map((team) => (
             <Link
               key={team.id}
@@ -107,7 +102,7 @@ export default function HomePage() {
               className="group relative"
             >
               <div className={`
-                relative overflow-hidden rounded-2xl p-8
+                relative overflow-hidden rounded-2xl p-4
                 bg-gradient-to-br from-slate-800/60 to-slate-900/60 backdrop-blur-md
                 border-2 ${team.borderColor} border-opacity-30
                 hover:border-opacity-100
@@ -136,7 +131,7 @@ export default function HomePage() {
                   {/* Enhanced Team Number Circle with pulse */}
                   <div
                     className={`
-                      w-20 h-20 rounded-full flex items-center justify-center mb-4
+                      w-14 h-14 rounded-full flex items-center justify-center mb-2
                       ${team.bgColor} bg-opacity-20
                       border-3 ${team.borderColor}
                       group-hover:scale-125 group-hover:rotate-12 transition-all duration-500
@@ -146,13 +141,13 @@ export default function HomePage() {
                       boxShadow: `0 0 20px ${team.color}40, inset 0 0 20px ${team.color}20`
                     }}
                   >
-                    <span className="text-4xl font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: team.color }}>
+                    <span className="text-2xl font-bold group-hover:scale-110 transition-transform duration-300" style={{ color: team.color }}>
                       {team.id}
                     </span>
                   </div>
 
                   {/* Team Name with topic */}
-                  <h3 className="text-lg font-bold text-white mb-1">
+                  <h3 className="text-base font-bold text-white mb-1">
                     {team.name}
                   </h3>
                   <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors line-clamp-2 px-2">
@@ -205,7 +200,7 @@ export default function HomePage() {
           </Link>
 
           {/* Helper text */}
-          <p className="text-sm text-slate-500 text-center max-w-md">
+          <p className="text-base text-slate-400 text-center max-w-md">
             View all teams&apos; analysis results in real-time
           </p>
         </div>

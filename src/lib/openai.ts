@@ -129,6 +129,47 @@ type AnalysisStructuredOutput = {
   criticism: string;
 };
 
+/**
+ * Generate professional male speech audio from text using OpenAI TTS.
+ * Returns audio as a Buffer (MP3 format).
+ */
+export async function generateCriticismAudio(criticismText: string): Promise<Buffer> {
+  try {
+    console.log(`Generating TTS audio for criticism text (${criticismText.length} characters)...`);
+
+    const response = await openai.audio.speech.create({
+      model: "tts-1-hd", // High-quality TTS model
+      voice: "onyx", // Deep, professional male voice
+      input: criticismText,
+      response_format: "mp3",
+      speed: 1.0, // Normal speed
+    });
+
+    // Convert response to Buffer
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    console.log(`TTS audio generated successfully (${buffer.length} bytes)`);
+    return buffer;
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("TTS generation error details:", {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      textLength: criticismText.length,
+    });
+
+    if (error instanceof Error && /API/i.test(error.message)) {
+      throw new Error(`OpenAI TTS API error: ${error.message}`);
+    }
+    if (error instanceof Error) {
+      throw new Error(`TTS generation error: ${error.message}`);
+    }
+
+    throw new Error("Failed to generate audio from text");
+  }
+}
+
 export async function analyzeWithGPT5(
   transcript: string,
   pdfUrlOrBuffer: string | Buffer
@@ -210,7 +251,7 @@ export async function analyzeWithGPT5(
               criticism: {
                 type: "string",
                 description:
-                  "Critical comparison between the discussion and the scientific PDF, covering strengths, gaps, discrepancies, and references to specific evidence.",
+                  "Critical comparison between the discussion and the scientific PDF (approximately 120 words for 50-second reading time). Focus on the most important: alignment with evidence, key contradictions, and significant strengths or weaknesses. Be concise and prioritize clinical relevance.",
               },
             },
           },
