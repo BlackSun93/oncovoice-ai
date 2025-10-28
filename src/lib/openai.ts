@@ -138,8 +138,8 @@ export async function generateCriticismAudio(criticismText: string): Promise<Buf
     console.log(`Generating TTS audio for criticism text (${criticismText.length} characters)...`);
 
     const response = await openai.audio.speech.create({
-      model: "tts-1-hd", // High-quality TTS model
-      voice: "onyx", // Deep, professional male voice
+      model: "gpt-4o-mini-tts", // GPT-4o Mini TTS model
+      voice: "ash", // Ash voice
       input: criticismText,
       response_format: "mp3",
       speed: 1.0, // Normal speed
