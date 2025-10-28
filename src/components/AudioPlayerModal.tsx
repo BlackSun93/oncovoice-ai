@@ -64,11 +64,11 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
     // Show first segment immediately
     const timer1 = setTimeout(() => setDisplayedSegments(1), 0);
 
-    // Show second segment at 16.67 seconds
-    const timer2 = setTimeout(() => setDisplayedSegments(2), 16670);
+    // Show second segment at 20 seconds (evenly distributed for 50s audio)
+    const timer2 = setTimeout(() => setDisplayedSegments(2), 20000);
 
-    // Show third segment at 33.33 seconds
-    const timer3 = setTimeout(() => setDisplayedSegments(3), 33330);
+    // Show third segment at 40 seconds (evenly distributed for 50s audio)
+    const timer3 = setTimeout(() => setDisplayedSegments(3), 40000);
 
     // Cleanup timers on unmount
     return () => {
@@ -108,6 +108,8 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
             autoPlay
             muted
             playsInline
+            preload="auto"
+            loop
           >
             <source src="/dramr1.mp4" type="video/mp4" />
           </video>
