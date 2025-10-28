@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Upload as UploadIcon } from "lucide-react";
 import { upload } from "@vercel/blob/client";
-import { TEAMS, SUPPORTED_AUDIO_TYPES, SUPPORTED_PDF_TYPE, MAX_AUDIO_SIZE_BYTES, MAX_PDF_SIZE_BYTES, ERROR_MESSAGES } from "@/lib/constants";
+import { TEAMS, SUPPORTED_AUDIO_TYPES, MAX_AUDIO_SIZE_BYTES, ERROR_MESSAGES } from "@/lib/constants";
 import { ProcessingStep } from "@/types";
 import FileUploadZone from "@/components/FileUploadZone";
 import ProcessingModal from "@/components/ProcessingModal";
@@ -21,14 +21,11 @@ export default function UploadPage({ params }: UploadPageProps) {
   const team = TEAMS.find((t) => t.id === teamId);
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [audioError, setAudioError] = useState<string>("");
-  const [pdfError, setPdfError] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [steps, setSteps] = useState<ProcessingStep[]>([
-    { id: "upload", label: "Uploading files", status: "pending" },
+    { id: "upload", label: "Uploading audio file", status: "pending" },
     { id: "transcribe", label: "Transcribing audio", status: "pending" },
-    { id: "extract", label: "Extracting PDF content", status: "pending" },
     { id: "analyze", label: "Analyzing with AI", status: "pending" },
   ]);
 
@@ -58,19 +55,6 @@ export default function UploadPage({ params }: UploadPageProps) {
     setAudioFile(file);
   };
 
-  const handlePdfSelect = (file: File) => {
-    setPdfError("");
-    if (file.size > MAX_PDF_SIZE_BYTES) {
-      setPdfError(ERROR_MESSAGES.PDF_TOO_LARGE);
-      return;
-    }
-    if (file.type !== SUPPORTED_PDF_TYPE) {
-      setPdfError(ERROR_MESSAGES.INVALID_PDF_TYPE);
-      return;
-    }
-    setPdfFile(file);
-  };
-
   const updateStepStatus = (stepId: string, status: ProcessingStep["status"]) => {
     setSteps((prev) =>
       prev.map((step) =>
@@ -80,20 +64,19 @@ export default function UploadPage({ params }: UploadPageProps) {
   };
 
   const handleSubmit = async () => {
-    if (!audioFile || !pdfFile) return;
+    if (!audioFile) return;
 
     setIsProcessing(true);
 
     try {
-      // Step 1: Upload files directly to Blob (client-side)
+      // Step 1: Upload audio file to Blob (client-side)
       updateStepStatus("upload", "in-progress");
 
-      console.log("Uploading files directly to Blob:", {
+      console.log("Uploading audio file directly to Blob:", {
         audioName: audioFile.name,
         audioType: audioFile.type,
         audioSize: audioFile.size,
-        pdfName: pdfFile.name,
-        pdfSize: pdfFile.size,
+        teamId: teamId,
       });
 
       // Upload audio file directly to Vercel Blob
@@ -108,23 +91,11 @@ export default function UploadPage({ params }: UploadPageProps) {
       });
       console.log("Audio uploaded to Blob:", audioBlob.url);
 
-      // Upload PDF file directly to Vercel Blob
-      const pdfTimestamp = Date.now();
-      const pdfFilename = `team-${teamId}-pdf-${pdfTimestamp}.pdf`;
-
-      console.log("Uploading PDF to Blob:", pdfFilename);
-      const pdfBlob = await upload(pdfFilename, pdfFile, {
-        access: "public",
-        handleUploadUrl: "/api/blob/upload",
-      });
-      console.log("PDF uploaded to Blob:", pdfBlob.url);
-
       const audioUrl = audioBlob.url;
-      const pdfUrl = pdfBlob.url;
       const audioContentType = audioFile.type;
       const audioFileName = audioFilename;
 
-      console.log("Upload successful:", { audioUrl, pdfUrl, audioContentType, audioFileName });
+      console.log("Upload successful:", { audioUrl, audioContentType, audioFileName, teamId });
       updateStepStatus("upload", "completed");
 
       // Step 2: Transcribe audio
@@ -160,19 +131,16 @@ export default function UploadPage({ params }: UploadPageProps) {
       console.log("Transcription successful:", transcript.substring(0, 100) + "...");
       updateStepStatus("transcribe", "completed");
 
-      // Step 3 & 4: Analyze (includes PDF extraction)
-      updateStepStatus("extract", "in-progress");
-      updateStepStatus("extract", "completed");
+      // Step 3: Analyze with AI (PDF is automatically loaded from team mapping)
       updateStepStatus("analyze", "in-progress");
 
-      console.log("Starting analysis with GPT-4...");
+      console.log("Starting analysis with AI (PDF will be loaded automatically for team)...");
       const analyzeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamId,
           transcript,
-          pdfUrl,
         }),
       });
 
@@ -222,7 +190,7 @@ export default function UploadPage({ params }: UploadPageProps) {
     }
   };
 
-  const canSubmit = audioFile && pdfFile && !audioError && !pdfError && !isProcessing;
+  const canSubmit = audioFile && !audioError && !isProcessing;
 
   return (
     <>
@@ -248,13 +216,14 @@ export default function UploadPage({ params }: UploadPageProps) {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-white">{team.name}</h1>
-                <p className="text-slate-400">Upload your recording and PDF source</p>
+                <p className="text-lg text-slate-300 mt-1">{team.topicName}</p>
+                <p className="text-sm text-slate-400 mt-2">Upload your recording for AI analysis</p>
               </div>
             </div>
           </div>
 
-          {/* Upload Zones */}
-          <div className="space-y-6 mb-8">
+          {/* Upload Zone */}
+          <div className="mb-8">
             <FileUploadZone
               file={audioFile}
               onFileSelect={handleAudioSelect}
@@ -263,16 +232,6 @@ export default function UploadPage({ params }: UploadPageProps) {
               label="Upload Audio Recording"
               icon="audio"
               error={audioError}
-            />
-
-            <FileUploadZone
-              file={pdfFile}
-              onFileSelect={handlePdfSelect}
-              accept={{ "application/pdf": [".pdf"] }}
-              maxSize={MAX_PDF_SIZE_BYTES}
-              label="Upload PDF Scientific Source"
-              icon="pdf"
-              error={pdfError}
             />
           </div>
 
@@ -299,7 +258,7 @@ export default function UploadPage({ params }: UploadPageProps) {
             <h3 className="text-sm font-semibold text-white mb-2">Processing Information</h3>
             <ul className="text-sm text-slate-400 space-y-1">
               <li>• Audio will be transcribed using AI (2-3 minutes)</li>
-              <li>• Content will be analyzed and compared with PDF source</li>
+              <li>• Content will be analyzed and compared with the scientific source for this topic</li>
               <li>• You'll receive a summary, conclusion, and critical analysis</li>
               <li>• Total processing time: approximately 3-5 minutes</li>
             </ul>

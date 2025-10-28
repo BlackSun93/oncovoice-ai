@@ -3,16 +3,18 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, RefreshCw, LineChart } from "lucide-react";
-import { TEAMS, DASHBOARD_REFRESH_INTERVAL } from "@/lib/constants";
+import { TEAMS, DASHBOARD_REFRESH_INTERVAL, getTeamsBySession } from "@/lib/constants";
 import { AllResults, TeamResult } from "@/types";
 import TeamResultCard from "@/components/TeamResultCard";
 import FullResultsModal from "@/components/FullResultsModal";
+import SessionSwitcher from "@/components/SessionSwitcher";
 
 export default function ResultsPage() {
   const [results, setResults] = useState<AllResults>({});
   const [selectedResult, setSelectedResult] = useState<TeamResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [selectedSession, setSelectedSession] = useState<number>(1);
 
   const fetchResults = async () => {
     try {
@@ -57,29 +59,37 @@ export default function ResultsPage() {
               Back to home
             </Link>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-xl">
-                  <LineChart className="w-8 h-8 text-cyan-400" />
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-xl">
+                    <LineChart className="w-8 h-8 text-cyan-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">
+                      Results Dashboard
+                    </h1>
+                    <p className="text-slate-400 mt-1">
+                      Last updated: {lastUpdated.toLocaleTimeString()}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-300 to-teal-300 bg-clip-text text-transparent">
-                    Results Dashboard
-                  </h1>
-                  <p className="text-slate-400 mt-1">
-                    Last updated: {lastUpdated.toLocaleTimeString()}
-                  </p>
-                </div>
+
+                <button
+                  onClick={handleManualRefresh}
+                  disabled={isLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-white transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                  Refresh
+                </button>
               </div>
 
-              <button
-                onClick={handleManualRefresh}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-white transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-                Refresh
-              </button>
+              {/* Session Switcher */}
+              <SessionSwitcher
+                selectedSession={selectedSession}
+                onSessionChange={setSelectedSession}
+              />
             </div>
           </div>
 
@@ -93,7 +103,7 @@ export default function ResultsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {TEAMS.map((team) => {
+              {getTeamsBySession(selectedSession).map((team) => {
                 const result = results[`team-${team.id}`];
                 return (
                   <TeamResultCard

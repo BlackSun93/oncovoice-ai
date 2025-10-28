@@ -1,12 +1,48 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TEAMS } from "@/lib/constants";
-import { Mic, LineChart } from "lucide-react";
+import { TEAMS, BREAKOUT_SESSIONS, getTeamsBySession } from "@/lib/constants";
+import { Mic, LineChart, RefreshCw } from "lucide-react";
+import SessionSelector from "@/components/SessionSelector";
+
+const SESSION_STORAGE_KEY = "selected_session";
 
 export default function HomePage() {
+  const [selectedSession, setSelectedSession] = useState<number | null>(null);
+  const [showSessionSelector, setShowSessionSelector] = useState(false);
+
+  // Load selected session from sessionStorage on mount
+  useEffect(() => {
+    const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (stored) {
+      setSelectedSession(parseInt(stored));
+    } else {
+      setShowSessionSelector(true);
+    }
+  }, []);
+
+  const handleSelectSession = (sessionId: number) => {
+    setSelectedSession(sessionId);
+    sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId.toString());
+    setShowSessionSelector(false);
+  };
+
+  const handleChangeSession = () => {
+    setShowSessionSelector(true);
+  };
+
+  // Get teams for selected session
+  const displayTeams = selectedSession ? getTeamsBySession(selectedSession) : [];
+  const currentSession = BREAKOUT_SESSIONS.find(s => s.id === selectedSession);
+
   return (
-    <div className="relative flex items-center justify-center px-4 py-8 min-h-[calc(100vh-12rem)] overflow-hidden">
+    <>
+      {showSessionSelector && (
+        <SessionSelector onSelectSession={handleSelectSession} />
+      )}
+
+      <div className="relative flex items-center justify-center px-4 py-8 min-h-[calc(100vh-12rem)] overflow-hidden">
       {/* Enhanced Animated Background */}
       <div className="absolute inset-0 -z-10">
         {/* Gradient Orbs with improved positioning */}
@@ -30,6 +66,21 @@ export default function HomePage() {
             <Mic className="w-8 h-8 text-cyan-400 animate-pulse" />
           </div>
 
+          {/* Session Badge */}
+          {currentSession && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/60 border border-cyan-500/30 rounded-full mb-4">
+              <span className="text-sm text-slate-400">Current Session:</span>
+              <span className="text-sm font-semibold text-cyan-400">{currentSession.name}</span>
+              <button
+                onClick={handleChangeSession}
+                className="ml-2 text-xs text-slate-500 hover:text-cyan-400 transition-colors"
+                title="Change session"
+              >
+                <RefreshCw className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
           {/* Title with enhanced gradient */}
           <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 bg-gradient-to-r from-cyan-300 via-teal-300 to-emerald-300 bg-clip-text text-transparent leading-tight">
             Select Your Team
@@ -48,8 +99,8 @@ export default function HomePage() {
         </div>
 
         {/* Enhanced Team Selection Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5 mb-12 px-2">
-          {TEAMS.map((team) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12 px-2">
+          {displayTeams.map((team) => (
             <Link
               key={team.id}
               href={`/upload/${team.id}`}
@@ -100,10 +151,13 @@ export default function HomePage() {
                     </span>
                   </div>
 
-                  {/* Team Name with better typography */}
-                  <h3 className="text-xl font-bold text-white group-hover:text-white/90 transition-colors">
+                  {/* Team Name with topic */}
+                  <h3 className="text-lg font-bold text-white mb-1">
                     {team.name}
                   </h3>
+                  <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors line-clamp-2 px-2">
+                    {team.topicName}
+                  </p>
 
                   {/* Enhanced arrow indicator */}
                   <div className="mt-3 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
@@ -157,5 +211,6 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

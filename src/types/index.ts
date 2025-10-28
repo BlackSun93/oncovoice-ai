@@ -1,7 +1,16 @@
+// Breakout Session types
+export interface BreakoutSession {
+  id: number;
+  name: string;
+  teams: readonly number[];
+}
+
 // Team types
 export interface Team {
   id: number;
   name: string;
+  topicName: string;
+  sessionId: number;
   color: string;
   bgColor: string;
   borderColor: string;
