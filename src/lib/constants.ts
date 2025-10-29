@@ -25,12 +25,12 @@ export const TEAMS = [
   { id: 8, name: "Team 8", topicName: "Managing AEs of targeted and endocrine therapy combinations", sessionId: 2, color: "#8B5CF6", bgColor: "bg-violet-500", borderColor: "border-violet-500", hoverColor: "hover:bg-violet-600" },
   { id: 9, name: "Team 9", topicName: "Molecular testing in Advanced ER+ breast cancer", sessionId: 2, color: "#F59E0B", bgColor: "bg-amber-500", borderColor: "border-amber-500", hoverColor: "hover:bg-amber-600" },
   { id: 10, name: "Team 10", topicName: "When to position ADCs in metastatic ER+ disease", sessionId: 2, color: "#F43F5E", bgColor: "bg-rose-500", borderColor: "border-rose-500", hoverColor: "hover:bg-rose-600" },
-  // Session 3 (Placeholders)
-  { id: 11, name: "Team 11", topicName: "Advanced Treatment Strategies", sessionId: 3, color: "#0EA5E9", bgColor: "bg-blue-500", borderColor: "border-blue-500", hoverColor: "hover:bg-blue-600" },
-  { id: 12, name: "Team 12", topicName: "Emerging Therapeutic Approaches", sessionId: 3, color: "#10B981", bgColor: "bg-emerald-500", borderColor: "border-emerald-500", hoverColor: "hover:bg-emerald-600" },
-  { id: 13, name: "Team 13", topicName: "Precision Medicine Applications", sessionId: 3, color: "#8B5CF6", bgColor: "bg-violet-500", borderColor: "border-violet-500", hoverColor: "hover:bg-violet-600" },
-  { id: 14, name: "Team 14", topicName: "Novel Biomarker Development", sessionId: 3, color: "#F59E0B", bgColor: "bg-amber-500", borderColor: "border-amber-500", hoverColor: "hover:bg-amber-600" },
-  { id: 15, name: "Team 15", topicName: "Immunotherapy Innovations", sessionId: 3, color: "#F43F5E", bgColor: "bg-rose-500", borderColor: "border-rose-500", hoverColor: "hover:bg-rose-600" },
+  // Session 3
+  { id: 11, name: "Team 11", topicName: "Hereditary breast cancer Truths and myths", sessionId: 3, color: "#0EA5E9", bgColor: "bg-blue-500", borderColor: "border-blue-500", hoverColor: "hover:bg-blue-600" },
+  { id: 12, name: "Team 12", topicName: "How to manage elderly TNBC", sessionId: 3, color: "#10B981", bgColor: "bg-emerald-500", borderColor: "border-emerald-500", hoverColor: "hover:bg-emerald-600" },
+  { id: 13, name: "Team 13", topicName: "Oligometastatic breast cancer", sessionId: 3, color: "#8B5CF6", bgColor: "bg-violet-500", borderColor: "border-violet-500", hoverColor: "hover:bg-violet-600" },
+  { id: 14, name: "Team 14", topicName: "Optimal sequencing of chemotherapy in metastatic TNBC", sessionId: 3, color: "#F59E0B", bgColor: "bg-amber-500", borderColor: "border-amber-500", hoverColor: "hover:bg-amber-600" },
+  { id: 15, name: "Team 15", topicName: "Reconstruction surgery options for patients with early breast cancer", sessionId: 3, color: "#F43F5E", bgColor: "bg-rose-500", borderColor: "border-rose-500", hoverColor: "hover:bg-rose-600" },
 ] as const;
 
 // Helper function to get teams for a specific session
@@ -105,11 +105,11 @@ export const TEAM_PDF_URLS: Record<number, string> = {
   8: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/8-Managing%20AEs%20of%20targeted%20and%20endocrine%20therapy%20combinations%20combined.pdf",
   9: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/9-Molecular%20testing%20in%20Advanced%20ER%2B%20breast%20cancer%20combined.pdf",
   10: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/10-When%20to%20position%20ADCs%20in%20metastatic%20ER%2B%20disease%20combined.pdf",
-  11: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/11.pdf",
-  12: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/12.pdf",
-  13: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/13.pdf",
-  14: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/14.pdf",
-  15: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/15.pdf",
+  11: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/11-Hereditary%20breast%20cancer%20Truths%20and%20myths.pdf",
+  12: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/12-How%20to%20manage%20elderly%20TNBC.pdf",
+  13: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/13-Oligometastatic%20breast%20cancer.pdf",
+  14: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/14-Optimal%20sequencing%20of%20chemotherapy%20in%20metastatic%20TNBC.pdf",
+  15: "https://z3ke2zc5t4fvdj66.public.blob.vercel-storage.com/15-Reconstruction%20surgery%20options%20for%20patients%20with%20early%20breast%20cancer.pdf",
 };
 
 // Error Messages

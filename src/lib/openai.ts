@@ -212,7 +212,7 @@ export async function analyzeWithGPT5(
           content: [
             {
               type: "input_text",
-              text: "You are an expert oncology clinician and researcher. Provide thorough, evidence-based analysis of clinical discussions and clearly reference insights from the attached scientific PDF.",
+              text: "You are an expert oncology clinician and researcher with comprehensive knowledge of current oncology literature and evidence-based practice. Provide thorough, evidence-based analysis of clinical discussions.",
             },
           ],
         },
@@ -221,7 +221,7 @@ export async function analyzeWithGPT5(
           content: [
             {
               type: "input_text",
-              text: `Review the attached PDF alongside the following transcript of a mixed Arabic-English oncology discussion, then deliver the requested analysis.\n\nTRANSCRIPT:\n${transcript}`,
+              text: `Analyze the following transcript of a mixed Arabic-English oncology discussion using your knowledge base, then deliver the requested analysis.\n\nTRANSCRIPT:\n${transcript}`,
             },
             {
               type: "input_file",
@@ -251,7 +251,7 @@ export async function analyzeWithGPT5(
               criticism: {
                 type: "string",
                 description:
-                  "Critical comparison between the discussion and the scientific PDF (approximately 120 words for 50-second reading time). Focus on the most important: alignment with evidence, key contradictions, and significant strengths or weaknesses. Be concise and prioritize clinical relevance.",
+                  "Critical analysis of the discussion based on evidence-based oncology knowledge (approximately 120 words for 50-second reading time). Focus on the most important: alignment with current evidence, key contradictions or gaps, and significant strengths or weaknesses. Be concise and prioritize clinical relevance.",
               },
             },
           },
