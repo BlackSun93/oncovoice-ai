@@ -251,7 +251,7 @@ export async function analyzeWithGPT5(
               criticism: {
                 type: "string",
                 description:
-                  "Critical analysis of the discussion based on evidence-based oncology knowledge (approximately 120 words for 50-second reading time). Focus on the most important: alignment with current evidence, key contradictions or gaps, and significant strengths or weaknesses. Be concise and prioritize clinical relevance.",
+                  "Start by thanking the team for their discussion. Then provide critical analysis based on evidence-based oncology knowledge (approximately 120 words for 50-second reading time). Focus on the most important: alignment with current evidence, key contradictions or gaps, and significant strengths or weaknesses. Be concise and prioritize clinical relevance.",
               },
             },
           },

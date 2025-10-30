@@ -54,27 +54,45 @@ export default function AudioPlayerModal({ result, onClose }: AudioPlayerModalPr
     }
   }, [result?.criticismAudioUrl]);
 
-  // Progressive text display: Show segments over 50 seconds
+  // Progressive text display: Sync with audio playback time
   useEffect(() => {
-    if (!result?.criticism) return;
+    if (!result?.criticism || !audioRef.current) return;
 
     // Reset segments when modal opens
     setDisplayedSegments(0);
 
-    // Show first segment immediately
-    const timer1 = setTimeout(() => setDisplayedSegments(1), 0);
+    const audio = audioRef.current;
 
-    // Show second segment at 20 seconds (evenly distributed for 50s audio)
-    const timer2 = setTimeout(() => setDisplayedSegments(2), 20000);
+    // Update displayed segment based on audio playback time
+    const handleTimeUpdate = () => {
+      const currentTime = audio.currentTime;
+      const duration = audio.duration;
 
-    // Show third segment at 40 seconds (evenly distributed for 50s audio)
-    const timer3 = setTimeout(() => setDisplayedSegments(3), 40000);
+      // Wait until duration is available
+      if (!duration || isNaN(duration)) return;
 
-    // Cleanup timers on unmount
+      // Calculate segment thresholds (divide audio into 3 equal parts)
+      const segmentDuration = duration / 3;
+
+      if (currentTime < segmentDuration) {
+        setDisplayedSegments(1); // First third
+      } else if (currentTime < segmentDuration * 2) {
+        setDisplayedSegments(2); // Second third
+      } else {
+        setDisplayedSegments(3); // Final third
+      }
+    };
+
+    // Listen to audio time updates
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+
+    // Also handle when metadata loads (duration becomes available)
+    audio.addEventListener("loadedmetadata", handleTimeUpdate);
+
+    // Cleanup listeners on unmount
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleTimeUpdate);
     };
   }, [result?.criticism]);
 

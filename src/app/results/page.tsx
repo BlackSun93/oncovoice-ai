@@ -187,6 +187,15 @@ function ResultsContent() {
           onClose={() => setSelectedAudioResult(null)}
         />
       )}
+
+      {/* Hidden video preloader - downloads Dr Amr's video in background */}
+      <video
+        preload="auto"
+        className="hidden"
+        aria-hidden="true"
+      >
+        <source src="/dramr1.mp4" type="video/mp4" />
+      </video>
     </>
   );
 }
