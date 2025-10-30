@@ -9,6 +9,9 @@ const ANALYSIS_MODEL = process.env.OPENAI_ANALYSIS_MODEL ?? "gpt-5";
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  // Set 4-minute timeout for long-running operations (transcription, GPT-5 analysis with large files)
+  // This is below Vercel Pro's 300s (5 min) maxDuration to ensure we get proper error messages
+  timeout: 4 * 60 * 1000, // 4 minutes in milliseconds
 });
 
 const AUDIO_BUFFER_FALLBACK_EXTENSION = "mp3";
@@ -194,16 +197,24 @@ export async function analyzeWithGPT5(
     console.log(`Preparing PDF for analysis: ${pdfFileName} (${pdfBuffer.length} bytes)`);
 
     // Upload PDF to OpenAI for assistant processing
+    console.log(`Converting PDF buffer to file object...`);
     const pdfFile = await toFile(pdfBuffer, pdfFileName);
+
+    console.log(`Uploading PDF to OpenAI Files API (purpose: assistants)...`);
+    const uploadStartTime = Date.now();
     uploadedFileId = (
       await openai.files.create({
         file: pdfFile,
         purpose: "assistants",
       })
     ).id;
+    const uploadEndTime = Date.now();
+    const uploadDuration = ((uploadEndTime - uploadStartTime) / 1000).toFixed(2);
 
-    console.log(`PDF uploaded successfully. File ID: ${uploadedFileId}`);
+    console.log(`PDF uploaded successfully in ${uploadDuration}s. File ID: ${uploadedFileId}`);
 
+    console.log(`Calling GPT-5 Responses API with model: ${ANALYSIS_MODEL}`);
+    const gptStartTime = Date.now();
     const response = await openai.responses.parse({
       model: ANALYSIS_MODEL,
       input: [
@@ -259,6 +270,9 @@ export async function analyzeWithGPT5(
         },
       },
     });
+    const gptEndTime = Date.now();
+    const gptDuration = ((gptEndTime - gptStartTime) / 1000).toFixed(2);
+    console.log(`GPT-5 API call completed in ${gptDuration}s`);
 
     const analysis = response.output_parsed as AnalysisStructuredOutput | null;
 

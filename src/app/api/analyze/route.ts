@@ -5,6 +5,9 @@ import { TEAMS } from "@/lib/constants";
 import { getPdfUrlForTeam } from "@/lib/pdf-mapping";
 import { put } from "@vercel/blob";
 
+// Vercel Pro allows up to 300 seconds (5 minutes) for serverless functions
+export const maxDuration = 300;
+
 export async function POST(request: NextRequest) {
   try {
     const { teamId, transcript } = await request.json();
@@ -69,19 +72,28 @@ export async function POST(request: NextRequest) {
     // This runs asynchronously without blocking the response
     (async () => {
       try {
-        console.log("Step 2: Analyzing with GPT-5 (including native PDF processing)...");
+        console.log(`[Team ${teamId}] Step 2: Starting GPT-5 analysis in background...`);
+        console.log(`[Team ${teamId}] Transcript length: ${transcript.length} chars, PDF size: ${pdfBuffer.length} bytes`);
+        const analysisStartTime = Date.now();
+
         const analysis = await analyzeWithGPT5(transcript, pdfBuffer);
-        console.log("GPT-5 analysis completed (PDF + transcript analyzed)");
+
+        const analysisEndTime = Date.now();
+        const analysisDuration = ((analysisEndTime - analysisStartTime) / 1000).toFixed(2);
+        console.log(`[Team ${teamId}] GPT-5 analysis completed in ${analysisDuration}s`);
 
         // Generate TTS audio for criticism section
-        console.log("Step 3: Generating TTS audio for Dr Amr Criticism...");
+        console.log(`[Team ${teamId}] Step 3: Generating TTS audio for criticism (${analysis.criticism.length} chars)...`);
         let criticismAudioUrl: string | undefined;
 
         try {
+          const ttsStartTime = Date.now();
           const audioBuffer = await generateCriticismAudio(analysis.criticism);
+          const ttsEndTime = Date.now();
+          const ttsDuration = ((ttsEndTime - ttsStartTime) / 1000).toFixed(2);
+          console.log(`[Team ${teamId}] TTS audio generated in ${ttsDuration}s, uploading to Blob...`);
 
           // Upload audio to Vercel Blob
-          console.log("Uploading criticism audio to Vercel Blob...");
           const audioBlob = await put(
             `team-${teamId}-criticism-${Date.now()}.mp3`,
             audioBuffer,
@@ -92,9 +104,9 @@ export async function POST(request: NextRequest) {
           );
 
           criticismAudioUrl = audioBlob.url;
-          console.log("Criticism audio uploaded successfully:", criticismAudioUrl);
+          console.log(`[Team ${teamId}] Criticism audio uploaded successfully: ${criticismAudioUrl}`);
         } catch (ttsError) {
-          console.error("TTS generation/upload failed (continuing without audio):", {
+          console.error(`[Team ${teamId}] TTS generation/upload failed (continuing without audio):`, {
             error: ttsError instanceof Error ? ttsError.message : String(ttsError),
             stack: ttsError instanceof Error ? ttsError.stack : undefined,
           });
@@ -102,7 +114,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Save final result to storage
-        console.log("Step 4: Saving final result to storage...");
+        console.log(`[Team ${teamId}] Step 4: Saving final result to storage...`);
         const result = {
           teamId: parseInt(teamId),
           teamName,
@@ -116,25 +128,30 @@ export async function POST(request: NextRequest) {
         };
 
         await saveResult(parseInt(teamId), result);
-        console.log("Result saved successfully for team", teamId);
+        console.log(`[Team ${teamId}] ✓ Complete! Result saved successfully with summary (${analysis.summary.length} chars), conclusion (${analysis.conclusion.length} chars), criticism (${analysis.criticism.length} chars)`);
       } catch (bgError) {
-        console.error("Background processing error:", {
+        console.error(`[Team ${teamId}] ✗ Background processing error:`, {
           error: bgError instanceof Error ? bgError.message : String(bgError),
           stack: bgError instanceof Error ? bgError.stack : undefined,
           teamId,
         });
 
         // Save error status
-        await saveResult(parseInt(teamId), {
-          teamId: parseInt(teamId),
-          teamName,
-          transcript,
-          summary: "",
-          conclusion: "",
-          criticism: "",
-          createdAt: new Date().toISOString(),
-          status: "failed" as const,
-        });
+        try {
+          await saveResult(parseInt(teamId), {
+            teamId: parseInt(teamId),
+            teamName,
+            transcript,
+            summary: "",
+            conclusion: "",
+            criticism: "",
+            createdAt: new Date().toISOString(),
+            status: "failed" as const,
+          });
+          console.log(`[Team ${teamId}] Error status saved to storage`);
+        } catch (saveError) {
+          console.error(`[Team ${teamId}] Failed to save error status:`, saveError);
+        }
       }
     })();
 
